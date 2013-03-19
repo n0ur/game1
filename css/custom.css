@@ -1,0 +1,13 @@
+body {
+  background:#eeeeee;
+}
+table.table tr td {
+  height:50px;
+  width:50px;
+}
+.table th, .table td {
+  vertical-align: middle;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
