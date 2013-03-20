@@ -10,16 +10,34 @@ $(document).ready(function () {
         this.turn = this.players[0];
       },
       start: function() {
-        while(!this.isFinished()) {
-          this.turn.play();
-          this.switchTurns();
-        }
+        $('td').text('');
+        this.turn.play();
       },
       switchTurns: function() {
         this.turn = (this.turn == this.players[0] ? this.players[1] : this.players[0]); 
       },
       isFinished: function() {
-        return this.board.state.join().match(/-/g) === null ? true : false;
+        return  this.board.state.join().match(/-/g) === null ? true : false;
+      },
+      someoneWon: function(lastPoint, mark) {
+        var lines = this.board.getLines(lastPoint);
+        for(var i=0; i<lines.length; i++){
+          if(this.board.hasMark(lines[i].point1, mark) && this.board.hasMark(lines[i].point2, mark) && this.board.hasMark(lines[i].point3, mark)) {
+            return true;
+          }
+        }
+        return false;
+      },
+      setMark: function(point, mark) {
+        this.board.setMark(point, mark);
+        if(this.someoneWon(point, mark)) {
+          console.log("Someone won!");
+        } else if (this.isFinished()) {
+          console.log("Game finished!");
+        } else {
+          this.switchTurns();
+          this.turn.play();
+        }
       },
       board: {
         state: [],
@@ -51,7 +69,7 @@ $(document).ready(function () {
           this.point2 = p2;
           this.point3 = p3;
         },
-        getLines: function() {
+        getLines: function(point) {
           var lines = [ new this.line([0,0], [1,1], [2,2]), // diagonal
           new this.line([0,2], [1,1], [2,0]), // diagonal
           new this.line([0,0], [0,1], [0,2]), // horizontal
@@ -60,99 +78,109 @@ $(document).ready(function () {
           new this.line([0,0], [1,0], [2,0]), // vertical
           new this.line([0,1], [1,1], [2,1]), // vertical
           new this.line([0,2], [1,2], [2,2])];// vertical
+          if (point !== undefined) {
+            var linesWithPoint = [];
+            for (var i=0; i<lines.length; i++) {
+              if (lines[i].point1.isEqual(point) || lines[i].point2.isEqual(point) || lines[i].point3.isEqual(point)) {
+                linesWithPoint.push(lines[i]);
+              }
+            }
+            return linesWithPoint;
+          }
           return lines;
         }
       }
     },
-    player: function(mark){
+    HumanPlayer: function(mark){
       this.game = $tictactoe.game; 
       this.mark = mark;
       this.opponentMark = (this.mark === 'x' ? 'o' : 'x');
-    },
-    HumanPlayer: function(mark){
-      this.prototype = new $tictactoe.player(mark);
+      var me = this;
+      $('td').click(function() {
+        var cellId = $(this).attr('id'), 
+        row = parseInt(cellId.charAt(1)),
+        col = parseInt(cellId.charAt(2));
+        if (!me.canPlay) {
+          return;
+        }
+        if (!me.game.board.hasMark([row, col], '-')) {
+          return;
+        } 
+        me.canPlay = false;
+        me.game.setMark([row,col], me.mark);
+      });
       this.play = function(point) {
-        this.prototype.game.board.setMark(point, this.prototype.mark);
+        this.canPlay = true;
       };
     },
     ComputerPlayer: function(mark){
-      this.prototype = new $tictactoe.player(mark);
+      this.game = $tictactoe.game; 
+      this.mark = mark;
+      this.opponentMark = (this.mark === 'x' ? 'o' : 'x');
       this.hasMyMarkAt = function(point) {
-        return this.prototype.game.board.hasMark(point, this.prototype.mark);
+        return this.game.board.hasMark(point, this.mark);
       };
       this.hasOppMarkAt = function(point) {
-        return this.prototype.game.board.hasMark(point, this.prototype.opponentMark);
+        return this.game.board.hasMark(point, this.opponentMark);
       };
       this.hasNothingAt = function(point) {
-        return this.prototype.game.board.hasMark(point, '-');
+        return this.game.board.hasMark(point, '-');
       };
       this.play = function() {
-        lines = this.prototype.game.board.getLines();
-        this.prototype.game.switchTurns();
+        lines = this.game.board.getLines();
         for (var i=0; i<lines.length; i++) {
           switch(true) {
             // i am one move till winning
             case this.hasMyMarkAt(lines[i].point1) && this.hasMyMarkAt(lines[i].point2) && this.hasNothingAt(lines[i].point3):
-              this.prototype.game.board.setMark(lines[i].point3,this.prototype.mark); return;
+              this.game.setMark(lines[i].point3,this.mark); return;
             case this.hasMyMarkAt(lines[i].point1) && this.hasMyMarkAt(lines[i].point3) && this.hasNothingAt(lines[i].point2):
-              this.prototype.game.board.setMark(lines[i].point2,this.prototype.mark); return;
+              this.game.setMark(lines[i].point2,this.mark); return;
             case this.hasMyMarkAt(lines[i].point2) && this.hasMyMarkAt(lines[i].point3) && this.hasNothingAt(lines[i].point1):
-              this.prototype.game.board.setMark(lines[i].point1,this.prototype.mark); return;
+              this.game.setMark(lines[i].point1,this.mark); return;
             // my opponent is one move till winning
             case this.hasOppMarkAt(lines[i].point1) && this.hasOppMarkAt(lines[i].point2) && this.hasNothingAt(lines[i].point3):
-              this.prototype.game.board.setMark(lines[i].point3,this.prototype.mark); return;
+              this.game.setMark(lines[i].point3,this.mark); return;
             case this.hasOppMarkAt(lines[i].point1) && this.hasOppMarkAt(lines[i].point3) && this.hasNothingAt(lines[i].point2):
-              this.prototype.game.board.setMark(lines[i].point2,this.prototype.mark); return;
+              this.game.setMark(lines[i].point2,this.mark); return;
             case this.hasOppMarkAt(lines[i].point2) && this.hasOppMarkAt(lines[i].point3) && this.hasNothingAt(lines[i].point1):
-              this.prototype.game.board.setMark(lines[i].point1,this.prototype.mark); return;
+              this.game.setMark(lines[i].point1,this.mark); return;
           }
         }
         for (var i=0; i<lines.length; i++) {
           switch(true) {
             // there is only one mark
             case this.hasMyMarkAt(lines[i].point1) && this.hasNothingAt(lines[i].point2) && this.hasNothingAt(lines[i].point3):
-              this.prototype.game.board.setMark(lines[i].point2,this.prototype.mark); return;
+              this.game.setMark(lines[i].point2,this.mark); return;
             case this.hasMyMarkAt(lines[i].point2) && this.hasNothingAt(lines[i].point1) && this.hasNothingAt(lines[i].point3):
-              this.prototype.game.board.setMark(lines[i].point1,this.prototype.mark); return;
+              this.game.setMark(lines[i].point1,this.mark); return;
             case this.hasMyMarkAt(lines[i].point3) && this.hasNothingAt(lines[i].point1) && this.hasNothingAt(lines[i].point2):
-              this.prototype.game.board.setMark(lines[i].point1,this.prototype.mark); return;
+              this.game.setMark(lines[i].point1,this.mark); return;
           }
         }
         for (var i=0; i<lines.length; i++) {
           switch(true) {
             //otherwise play where is empty
             case this.hasNothingAt(lines[i].point2):
-              this.prototype.game.board.setMark(lines[i].point2,this.prototype.mark); return;
+              this.game.setMark(lines[i].point2,this.mark); return;
             case this.hasNothingAt(lines[i].point1):
-              this.prototype.game.board.setMark(lines[i].point1,this.prototype.mark); return;
+              this.game.setMark(lines[i].point1,this.mark); return;
             case this.hasNothingAt(lines[i].point3):
-              this.prototype.game.board.setMark(lines[i].point3,this.prototype.mark); return;
+              this.game.setMark(lines[i].point3,this.mark); return;
           }
         }            
       };
     }
   }
-
-  $tictactoe.game.init(new $tictactoe.ComputerPlayer('x'), new $tictactoe.ComputerPlayer('o'));
-  // $tictactoe.game.start();
-  $("#player1").click(function(){
-    $tictactoe.game.turn.play();
-  });
+  Array.prototype.isEqual = function(arr) {
+    if(this.length !== arr.length) {
+      return false;
+    } else {
+      for(var i=0; i<this.length; i++){
+        if(this[i] !== arr[i]) return false;
+      }
+    }
+    return true;
+  }
+  $tictactoe.game.init(new $tictactoe.ComputerPlayer('x'), new $tictactoe.HumanPlayer('o'));
+  $tictactoe.game.start();
 });
-
-// if (this.turn == this.players[0]) {
-//   // var that = this;
-//   console.log("it's player0 turn");
-//   // $('td#c00').click(function(){ that.turn.play([0,0]); });
-//   // $('td#c01').click(function(){ that.turn.play([0,1]); });
-//   // $('td#c02').click(function(){ that.turn.play([0,2]); });
-//   // $('td#c10').click(function(){ that.turn.play([1,0]); });
-//   // $('td#c11').click(function(){ that.turn.play([1,1]); });
-//   // $('td#c12').click(function(){ that.turn.play([1,2]); });
-//   // $('td#c20').click(function(){ that.turn.play([2,0]); });
-//   // $('td#c21').click(function(){ that.turn.play([2,1]); });
-//   // $('td#c22').click(function(){ that.turn.play([2,2]); });
-// } else {
-//   console.log("it's player1 turn");
-//   this.turn.play();
-// } 
