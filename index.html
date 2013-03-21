@@ -12,10 +12,33 @@
   <div class="container">
     <div class="row">
       <h2 class="span12">Tic Tac Toe</h2>
-      <div class="span2">
-        <div class="pull-right">
-          <button id="player1" class="btn btn-success">Play</button>
+      <div class="span5">
+        <div class="span2">
+          <h5>Player 1</h5>
+          <label class="radio">
+            <input type="radio" name="player1" value="human" checked>
+            Human
+          </label>
+          <label class="radio">
+            <input type="radio" name="player1" value="computer">
+            Computer
+          </label>
         </div>
+        <div class="span2">
+          <h5>Player 2</h5>
+          <label class="radio">
+            <input type="radio" name="player2" value="human">
+            Human
+          </label>
+          <label class="radio">
+            <input type="radio" name="player2" value="computer" checked>
+            Computer
+          </label>
+        </div>
+        <div class="span4">
+          <button class="btn btn-success">Start</button>
+        </div>
+
       </div>
       <div class="span3">
         <table class="table table-bordered">
@@ -24,16 +47,10 @@
           <tr><td id="c20"></td><td id="c21"></td><td id="c22"></td></tr>
         </table>
       </div>
-<!--       <div class="span2">
-        <div class="pull-left">
-          <h4>Player 2</h4>
-          <button id="player2" class="btn btn-info">Play</button>
-        </div>
-      </div> -->
+      <div class="span4">
+        <pre class='pre-scrollable'>messages:<br/>- click start to start the game<br /></pre>
+      </div>
     </div>
   </div>
-  <script>
-
-  </script>
 </body>
 </html>

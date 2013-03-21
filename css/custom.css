@@ -11,3 +11,14 @@ table.table tr td {
   font-size: 22px;
   font-weight: bold;
 }
+.center {
+  text-align: center;
+}
+.btn-success {
+  margin-top:10px;
+}
+pre.pre-scrollable {
+  min-height:180px;
+  max-height:180px;
+  height:180px;
+}
